@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { PDFControls, PDFUploader, PDFCanvas, usePDFViewer } from "./components";
+import type { WatermarkMode } from "./components";
 
 export default function PDFTestPage() {
   const {
@@ -19,6 +21,8 @@ export default function PDFTestPage() {
     zoomIn,
     zoomOut,
   } = usePDFViewer();
+
+  const [watermarkMode, setWatermarkMode] = useState<WatermarkMode>("small");
 
   return (
     <div className="min-h-screen bg-zinc-100 dark:bg-zinc-900">
@@ -46,22 +50,64 @@ export default function PDFTestPage() {
         )}
 
         {pdfDoc && (
-          <PDFControls
-            currentPage={currentPage}
-            totalPages={totalPages}
-            scale={scale}
-            isLoading={isLoading}
-            onPrevPage={goToPrevPage}
-            onNextPage={goToNextPage}
-            onZoomIn={zoomIn}
-            onZoomOut={zoomOut}
-          />
+          <>
+            <PDFControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              scale={scale}
+              isLoading={isLoading}
+              onPrevPage={goToPrevPage}
+              onNextPage={goToNextPage}
+              onZoomIn={zoomIn}
+              onZoomOut={zoomOut}
+            />
+
+            <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg bg-white p-4 shadow dark:bg-zinc-800">
+              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                Watermark Style:
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setWatermarkMode("small")}
+                  className={`rounded-lg px-3 py-2 text-sm transition-colors ${
+                    watermarkMode === "small"
+                      ? "bg-blue-600 text-white"
+                      : "bg-zinc-200 text-zinc-700 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-600"
+                  }`}
+                >
+                  Small (Repeating)
+                </button>
+                <button
+                  onClick={() => setWatermarkMode("center")}
+                  className={`rounded-lg px-3 py-2 text-sm transition-colors ${
+                    watermarkMode === "center"
+                      ? "bg-blue-600 text-white"
+                      : "bg-zinc-200 text-zinc-700 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-600"
+                  }`}
+                >
+                  Big (Center)
+                </button>
+                <button
+                  onClick={() => setWatermarkMode("triple")}
+                  className={`rounded-lg px-3 py-2 text-sm transition-colors ${
+                    watermarkMode === "triple"
+                      ? "bg-blue-600 text-white"
+                      : "bg-zinc-200 text-zinc-700 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-600"
+                  }`}
+                >
+                  Triple (3 Lines)
+                </button>
+              </div>
+            </div>
+          </>
         )}
 
         <PDFCanvas
           ref={canvasRef}
           isVisible={!!pdfDoc}
           isLoading={isLoading}
+          watermarkText="VK Publications"
+          watermarkMode={watermarkMode}
         />
 
         <div className="mt-8 rounded-lg bg-amber-100 p-4 dark:bg-amber-900/30">
@@ -73,6 +119,7 @@ export default function PDFTestPage() {
             <li>Prevents easy extraction of PDF content</li>
             <li>Useful for protecting sensitive documents</li>
             <li>The PDF is rendered as pixels, not as DOM text elements</li>
+            <li>Watermark overlay gets selected when attempting to copy content</li>
           </ul>
         </div>
       </div>
