@@ -60,6 +60,7 @@ export function usePDFViewer() {
 
         const renderContext = {
           canvasContext: context,
+          canvas: canvas,
           transform: transform,
           viewport: viewport,
         };
