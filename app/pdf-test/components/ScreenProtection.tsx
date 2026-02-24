@@ -419,8 +419,6 @@ export const ScreenProtection = forwardRef<ScreenProtectionRef, ScreenProtection
   );
 });
 
-export type { ScreenProtectionRef };
-
 // Hook for programmatic control
 export function useScreenProtection() {
   const [isProtected, setIsProtected] = useState(true);
