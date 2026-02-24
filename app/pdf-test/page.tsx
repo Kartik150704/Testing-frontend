@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { PDFControls, PDFUploader, PDFCanvas, usePDFViewer, ScreenProtection } from "./components";
 import type { WatermarkMode, ScreenProtectionRef } from "./components";
 
@@ -24,22 +24,7 @@ export default function PDFTestPage() {
 
   const [watermarkMode, setWatermarkMode] = useState<WatermarkMode>("small");
   const [protectionEnabled, setProtectionEnabled] = useState(true);
-  const [focusStatus, setFocusStatus] = useState<"focused" | "blurred">("focused");
   const protectionRef = useRef<ScreenProtectionRef>(null);
-
-  // Debug: Track focus state
-  useEffect(() => {
-    const handleFocus = () => setFocusStatus("focused");
-    const handleBlur = () => setFocusStatus("blurred");
-    
-    window.addEventListener("focus", handleFocus);
-    window.addEventListener("blur", handleBlur);
-    
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-      window.removeEventListener("blur", handleBlur);
-    };
-  }, []);
 
   const handleTestProtection = () => {
     protectionRef.current?.simulateBlur();
@@ -49,13 +34,13 @@ export default function PDFTestPage() {
     <ScreenProtection
       ref={protectionRef}
       enabled={protectionEnabled}
-      blurOnHidden={true}
+      hideOnTabChange={true}
       blockPrintScreen={true}
       blockContextMenu={true}
       blockKeyboardShortcuts={true}
       blockDevTools={true}
       showWarningOnAttempt={true}
-      screenshotBlackoutDuration={8000}
+      screenshotBlackoutDuration={5000}
     >
       <div className="min-h-screen bg-zinc-100 dark:bg-zinc-900">
         <div className="mx-auto max-w-6xl px-4 py-8">
@@ -79,20 +64,12 @@ export default function PDFTestPage() {
                 </h3>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
                   {protectionEnabled 
-                    ? "Active - Content will blur when window loses focus" 
+                    ? "Active - Screenshot shortcuts will be blocked" 
                     : "Disabled - Content is not protected"}
                 </p>
               </div>
             </div>
             <div className="ml-auto flex items-center gap-2">
-              {/* Debug: Focus status indicator */}
-              <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                focusStatus === "focused" 
-                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" 
-                  : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-              }`}>
-                Window: {focusStatus === "focused" ? "Focused ✓" : "Blurred ✗"}
-              </div>
               {protectionEnabled && (
                 <button
                   onClick={handleTestProtection}
@@ -193,11 +170,13 @@ export default function PDFTestPage() {
               Protection Features Active
             </h2>
             <ul className="list-inside list-disc space-y-1 text-amber-700 dark:text-amber-400">
-              <li>Content blurs when window loses focus (screenshot tool detection)</li>
-              <li>PrintScreen and screenshot shortcuts blocked</li>
+              <li>Content hidden when switching browser tabs</li>
+              <li>Win+Shift+S (Snipping Tool) triggers blackout screen</li>
+              <li>PrintScreen key blocked</li>
+              <li>Print (Ctrl+P) triggers blackout screen</li>
               <li>Right-click context menu disabled</li>
               <li>Developer tools shortcuts blocked</li>
-              <li>Print (Ctrl+P) and Save (Ctrl+S) disabled</li>
+              <li>Save (Ctrl+S) disabled</li>
               <li>Drag and drop disabled</li>
               <li>Text selection disabled</li>
               <li>Canvas rendering prevents text extraction</li>
