@@ -55,6 +55,7 @@ export default function PDFTestPage() {
       blockKeyboardShortcuts={true}
       blockDevTools={true}
       showWarningOnAttempt={true}
+      screenshotBlackoutDuration={8000}
     >
       <div className="min-h-screen bg-zinc-100 dark:bg-zinc-900">
         <div className="mx-auto max-w-6xl px-4 py-8">

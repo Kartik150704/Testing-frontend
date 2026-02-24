@@ -27,22 +27,28 @@ export const ScreenProtection = forwardRef<ScreenProtectionRef, ScreenProtection
   blockKeyboardShortcuts = true,
   blockDevTools = true,
   showWarningOnAttempt = true,
-  screenshotBlackoutDuration = 3000,
+  screenshotBlackoutDuration = 5000, // Increased default to 5 seconds
 }, ref) {
   const [isHidden, setIsHidden] = useState(false);
   const [isTestMode, setIsTestMode] = useState(false);
   const [isScreenshotBlackout, setIsScreenshotBlackout] = useState(false);
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
   const blackoutTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isBlackoutActiveRef = useRef(false); // Track if blackout is from keyboard shortcut
 
-  // Instant blackout for screenshot attempts
+  // Instant blackout for screenshot attempts - stays until timeout OR focus returns
   const triggerScreenshotBlackout = useCallback((message: string) => {
     if (!enabled) return;
+    
+    console.log("🚨 BLACKOUT TRIGGERED:", message);
     
     // Clear any existing timeout
     if (blackoutTimeoutRef.current) {
       clearTimeout(blackoutTimeoutRef.current);
     }
+    
+    // Mark that we have an active keyboard-triggered blackout
+    isBlackoutActiveRef.current = true;
     
     // Immediately blackout
     setIsScreenshotBlackout(true);
@@ -52,8 +58,10 @@ export const ScreenProtection = forwardRef<ScreenProtectionRef, ScreenProtection
       setWarningMessage(message);
     }
     
-    // Auto-restore after duration
+    // Auto-restore after duration (as a fallback)
     blackoutTimeoutRef.current = setTimeout(() => {
+      console.log("⏰ Blackout timeout - restoring");
+      isBlackoutActiveRef.current = false;
       setIsScreenshotBlackout(false);
       setIsHidden(false);
       setWarningMessage(null);
@@ -87,7 +95,7 @@ export const ScreenProtection = forwardRef<ScreenProtectionRef, ScreenProtection
 
     // 1. Visibility Change Detection - blur content when tab is not visible
     const handleVisibilityChange = () => {
-      console.log("👁️ Visibility changed:", { hidden: document.hidden });
+      console.log("👁️ Visibility changed:", { hidden: document.hidden, blackoutActive: isBlackoutActiveRef.current });
       if (blurOnHidden) {
         if (document.hidden) {
           // Immediately blackout when tab becomes hidden
@@ -103,7 +111,7 @@ export const ScreenProtection = forwardRef<ScreenProtectionRef, ScreenProtection
     // This is our MAIN defense against Cmd+Shift+4 - when the screenshot
     // selection tool opens, the browser loses focus
     const handleWindowBlur = () => {
-      console.log("🔴 Window BLUR detected");
+      console.log("🔴 Window BLUR detected, blackoutActive:", isBlackoutActiveRef.current);
       if (blurOnHidden) {
         // Immediately blackout - this catches screenshot tools
         setIsScreenshotBlackout(true);
@@ -114,15 +122,26 @@ export const ScreenProtection = forwardRef<ScreenProtectionRef, ScreenProtection
     };
 
     const handleWindowFocus = () => {
-      console.log("🟢 Window FOCUS detected");
+      console.log("🟢 Window FOCUS detected, blackoutActive:", isBlackoutActiveRef.current);
+      
+      // If a keyboard-triggered blackout is active, DON'T restore on focus
+      // The blackout will only clear after the timeout
+      if (isBlackoutActiveRef.current) {
+        console.log("⚠️ Keyboard blackout still active - NOT restoring");
+        return;
+      }
+      
       if (blurOnHidden && blurTriggeredBlackout) {
-        // Delay restoration slightly to ensure screenshot is of black screen
+        // Delay restoration to ensure screenshot captures black screen
         setTimeout(() => {
-          setIsScreenshotBlackout(false);
-          setIsHidden(false);
-          blurTriggeredBlackout = false;
-          setWarningMessage(null);
-        }, 500);
+          // Double-check blackout isn't active
+          if (!isBlackoutActiveRef.current) {
+            setIsScreenshotBlackout(false);
+            setIsHidden(false);
+            blurTriggeredBlackout = false;
+            setWarningMessage(null);
+          }
+        }, 1000); // Increased delay to 1 second
       }
     };
 
