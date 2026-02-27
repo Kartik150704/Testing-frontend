@@ -35,30 +35,25 @@ export const ScreenProtection = forwardRef<ScreenProtectionRef, ScreenProtection
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
   const blackoutTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Instant blackout for screenshot attempts
   const triggerScreenshotBlackout = useCallback((message: string) => {
     if (!enabled) return;
     
-    // Clear any existing timeout
     if (blackoutTimeoutRef.current) {
       clearTimeout(blackoutTimeoutRef.current);
     }
     
-    // Immediately blackout
     setIsScreenshotBlackout(true);
     
     if (showWarningOnAttempt) {
       setWarningMessage(message);
     }
     
-    // Auto-restore after duration
     blackoutTimeoutRef.current = setTimeout(() => {
       setIsScreenshotBlackout(false);
       setWarningMessage(null);
     }, screenshotBlackoutDuration);
   }, [enabled, showWarningOnAttempt, screenshotBlackoutDuration]);
 
-  // Expose simulateBlur method via ref (for testing)
   useImperativeHandle(ref, () => ({
     simulateBlur: () => {
       if (!enabled) return;
@@ -77,7 +72,7 @@ export const ScreenProtection = forwardRef<ScreenProtectionRef, ScreenProtection
     setTimeout(() => setWarningMessage(null), 2000);
   }, [showWarningOnAttempt]);
 
-  // Tab visibility change detection (separate from keyboard shortcuts)
+  // Tab visibility change detection
   useEffect(() => {
     if (!enabled || !hideOnTabChange) return;
 
@@ -85,7 +80,6 @@ export const ScreenProtection = forwardRef<ScreenProtectionRef, ScreenProtection
       if (document.hidden) {
         setIsTabHidden(true);
       } else {
-        // Small delay before showing content again
         setTimeout(() => {
           setIsTabHidden(false);
         }, 300);
@@ -99,86 +93,82 @@ export const ScreenProtection = forwardRef<ScreenProtectionRef, ScreenProtection
     };
   }, [enabled, hideOnTabChange]);
 
+  // Print protection via beforeprint/afterprint events
+  // Catches all print attempts including File > Print menu, not just Ctrl+P
   useEffect(() => {
     if (!enabled) return;
 
-    // Only trigger on ACTUAL screenshot keyboard shortcuts
+    const handleBeforePrint = () => {
+      setIsScreenshotBlackout(true);
+    };
+
+    const handleAfterPrint = () => {
+      setTimeout(() => {
+        setIsScreenshotBlackout(false);
+      }, 1000);
+    };
+
+    window.addEventListener("beforeprint", handleBeforePrint);
+    window.addEventListener("afterprint", handleAfterPrint);
+
+    return () => {
+      window.removeEventListener("beforeprint", handleBeforePrint);
+      window.removeEventListener("afterprint", handleAfterPrint);
+    };
+  }, [enabled]);
+
+  // Inject @media print CSS to blank the page during printing
+  useEffect(() => {
+    if (!enabled) return;
+
+    const style = document.createElement("style");
+    style.textContent = `
+      @media print {
+        body * { visibility: hidden !important; }
+        body::after {
+          content: "Printing is not allowed";
+          visibility: visible !important;
+          position: fixed;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 2rem;
+          font-weight: bold;
+          color: #333;
+          background: #fff;
+          z-index: 99999;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, [enabled]);
+
+  useEffect(() => {
+    if (!enabled) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!blockKeyboardShortcuts) return;
 
-      // ============ SCREENSHOT SHORTCUTS - INSTANT BLACKOUT ============
-      
-      // PrintScreen key (Windows)
+      // PrintScreen key — best-effort, works in some browsers
       if (blockPrintScreen && e.key === "PrintScreen") {
         e.preventDefault();
         triggerScreenshotBlackout("Screenshot blocked - PrintScreen");
         return;
       }
 
-      // Windows: Win + Shift + S (Snipping Tool)
-      if (e.shiftKey && e.metaKey && e.key.toLowerCase() === "s") {
-        e.preventDefault();
-        triggerScreenshotBlackout("Screenshot blocked - Snipping Tool");
-        return;
-      }
-
-      // Windows: Win + PrtScn
-      if (e.metaKey && e.key === "PrintScreen") {
-        e.preventDefault();
-        triggerScreenshotBlackout("Screenshot blocked - Win+PrintScreen");
-        return;
-      }
-
-      // Mac: Cmd + Shift + 3 (Full screen screenshot)
-      if (e.metaKey && e.shiftKey && e.key === "3") {
-        e.preventDefault();
-        triggerScreenshotBlackout("Screenshot blocked - Cmd+Shift+3");
-        return;
-      }
-
-      // Mac: Cmd + Shift + 4 (Selection screenshot)
-      if (e.metaKey && e.shiftKey && e.key === "4") {
-        e.preventDefault();
-        triggerScreenshotBlackout("Screenshot blocked - Cmd+Shift+4");
-        return;
-      }
-
-      // Mac: Cmd + Shift + 5 (Screenshot/Recording menu)
-      if (e.metaKey && e.shiftKey && e.key === "5") {
-        e.preventDefault();
-        triggerScreenshotBlackout("Screenshot blocked - Cmd+Shift+5");
-        return;
-      }
-
-      // Mac: Cmd + Shift + 6 (Touch Bar screenshot)
-      if (e.metaKey && e.shiftKey && e.key === "6") {
-        e.preventDefault();
-        triggerScreenshotBlackout("Screenshot blocked - Cmd+Shift+6");
-        return;
-      }
-
-      // Mac: Ctrl + Cmd + Shift + 3/4 (Screenshot to clipboard)
-      if (e.ctrlKey && e.metaKey && e.shiftKey && (e.key === "3" || e.key === "4")) {
-        e.preventDefault();
-        triggerScreenshotBlackout("Screenshot blocked");
-        return;
-      }
-
-      // Linux: Alt+Print, Shift+Print
-      if ((e.altKey || e.shiftKey) && e.key === "PrintScreen") {
-        e.preventDefault();
-        triggerScreenshotBlackout("Screenshot blocked");
-        return;
-      }
-
-      // ============ PRINT BLOCKED ============
+      // Print (Ctrl+P / Cmd+P) — browser-level shortcut, reliably interceptable
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") {
         e.preventDefault();
         triggerScreenshotBlackout("Print blocked");
         return;
       }
 
-      // ============ DEV TOOLS BLOCKED (just warning, no blackout) ============
+      // Dev tools shortcuts
       if (blockDevTools) {
         if (e.key === "F12") {
           e.preventDefault();
@@ -199,7 +189,7 @@ export const ScreenProtection = forwardRef<ScreenProtectionRef, ScreenProtection
         }
       }
 
-      // Block Ctrl+S / Cmd+S (Save) - just warning
+      // Save (Ctrl+S / Cmd+S)
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s" && !e.shiftKey) {
         e.preventDefault();
         showWarning("Saving is disabled");
@@ -207,7 +197,6 @@ export const ScreenProtection = forwardRef<ScreenProtectionRef, ScreenProtection
       }
     };
 
-    // Block context menu (right-click)
     const handleContextMenu = (e: MouseEvent) => {
       if (blockContextMenu) {
         e.preventDefault();
@@ -215,12 +204,10 @@ export const ScreenProtection = forwardRef<ScreenProtectionRef, ScreenProtection
       }
     };
 
-    // Block drag events
     const handleDragStart = (e: DragEvent) => {
       e.preventDefault();
     };
 
-    // Add event listeners
     document.addEventListener("keydown", handleKeyDown, { capture: true });
     document.addEventListener("contextmenu", handleContextMenu);
     document.addEventListener("dragstart", handleDragStart);
@@ -235,7 +222,6 @@ export const ScreenProtection = forwardRef<ScreenProtectionRef, ScreenProtection
     };
   }, [enabled, blockPrintScreen, blockContextMenu, blockKeyboardShortcuts, blockDevTools, showWarning, triggerScreenshotBlackout]);
 
-  // CSS to prevent selection
   const protectionStyles = enabled ? {
     userSelect: "none" as const,
     WebkitUserSelect: "none" as const,
@@ -244,12 +230,10 @@ export const ScreenProtection = forwardRef<ScreenProtectionRef, ScreenProtection
     WebkitTouchCallout: "none" as const,
   } : {};
 
-  // Determine if content should be hidden
   const shouldHideContent = isScreenshotBlackout || isTabHidden;
 
   return (
     <div className="relative" style={protectionStyles}>
-      {/* Warning Toast */}
       {warningMessage && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] animate-pulse">
           <div className="bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg font-medium">
@@ -258,18 +242,17 @@ export const ScreenProtection = forwardRef<ScreenProtectionRef, ScreenProtection
         </div>
       )}
 
-      {/* Screenshot blackout overlay - completely black */}
       {isScreenshotBlackout && enabled && (
         <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center">
           <div className="text-center p-8">
             <div className="text-6xl mb-4">{isTestMode ? "🔒" : "🚫"}</div>
             <h2 className="text-2xl font-bold text-white mb-2">
-              {isTestMode ? "Content Protected" : "Screenshot Blocked"}
+              {isTestMode ? "Content Protected" : "Action Blocked"}
             </h2>
             <p className="text-gray-400">
               {isTestMode 
                 ? "This is a preview - will restore in 3 seconds"
-                : "Screen capture is not allowed"}
+                : "This action is not allowed"}
             </p>
             {isTestMode && (
               <button
@@ -286,7 +269,6 @@ export const ScreenProtection = forwardRef<ScreenProtectionRef, ScreenProtection
         </div>
       )}
 
-      {/* Tab hidden overlay - shown when user switches tabs */}
       {isTabHidden && enabled && !isScreenshotBlackout && (
         <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center">
           <div className="text-center p-8">
@@ -299,7 +281,6 @@ export const ScreenProtection = forwardRef<ScreenProtectionRef, ScreenProtection
         </div>
       )}
 
-      {/* Protected content */}
       <div
         className={`transition-all duration-100 ${shouldHideContent && enabled ? "blur-xl scale-95 opacity-0" : ""}`}
       >
@@ -309,7 +290,6 @@ export const ScreenProtection = forwardRef<ScreenProtectionRef, ScreenProtection
   );
 });
 
-// Hook for programmatic control
 export function useScreenProtection() {
   const [isProtected, setIsProtected] = useState(true);
 

@@ -64,7 +64,7 @@ export default function PDFTestPage() {
                 </h3>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
                   {protectionEnabled 
-                    ? "Active - Screenshot shortcuts will be blocked" 
+                    ? "Active - Print, copy, and developer tools are blocked" 
                     : "Disabled - Content is not protected"}
                 </p>
               </div>
@@ -171,15 +171,16 @@ export default function PDFTestPage() {
             </h2>
             <ul className="list-inside list-disc space-y-1 text-amber-700 dark:text-amber-400">
               <li>Content hidden when switching browser tabs</li>
-              <li>Win+Shift+S (Snipping Tool) triggers blackout screen</li>
-              <li>PrintScreen key blocked</li>
-              <li>Print (Ctrl+P) triggers blackout screen</li>
+              <li>Print blocked (Ctrl+P / Cmd+P and File &gt; Print menu)</li>
+              <li>Printed pages show blank content via CSS print protection</li>
+              <li>PrintScreen key blocked (best-effort, browser-dependent)</li>
               <li>Right-click context menu disabled</li>
-              <li>Developer tools shortcuts blocked</li>
-              <li>Save (Ctrl+S) disabled</li>
+              <li>Developer tools shortcuts blocked (F12, Ctrl+Shift+I/J/C)</li>
+              <li>View source (Ctrl+U) disabled</li>
+              <li>Save page (Ctrl+S / Cmd+S) disabled</li>
               <li>Drag and drop disabled</li>
-              <li>Text selection disabled</li>
-              <li>Canvas rendering prevents text extraction</li>
+              <li>Text selection disabled via CSS</li>
+              <li>Canvas rendering prevents text copy/extraction</li>
               <li>Watermarks for content tracing</li>
             </ul>
           </div>
@@ -189,9 +190,12 @@ export default function PDFTestPage() {
               ⚠️ Important Note
             </h2>
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              These protections make casual copying harder but cannot prevent determined users. 
-              Screenshots at the OS level, external cameras, or browser extensions can still capture content. 
-              For truly sensitive content, consider server-side rendering with session-based access controls.
+              These protections make casual copying significantly harder but cannot fully prevent 
+              determined users. OS-level screenshot shortcuts (Win+Shift+S, Cmd+Shift+4, etc.) 
+              are handled by the operating system before the browser sees them and cannot be 
+              intercepted by any website. External cameras or screen recording software can also 
+              capture content. For truly sensitive documents, consider server-side rendering with 
+              session-based access controls and DRM solutions.
             </p>
           </div>
         </div>
