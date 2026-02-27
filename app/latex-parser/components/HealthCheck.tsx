@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5003/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 
 interface HealthResponse {
   success: boolean;

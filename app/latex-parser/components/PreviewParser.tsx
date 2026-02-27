@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5003/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 
 interface PreviewResult {
   success: boolean;
