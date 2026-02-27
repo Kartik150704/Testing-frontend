@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import ResultDisplay, { saveToStorage, getFromStorage } from "./ResultDisplay";
 
-const API_BASE = "http://localhost:5003/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5003/api";
 
 export default function FileUploadParser() {
   const [questionsFile, setQuestionsFile] = useState<File | null>(null);

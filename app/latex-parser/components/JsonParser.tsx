@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import ResultDisplay, { saveToStorage, getFromStorage } from "./ResultDisplay";
 
-const API_BASE = "http://localhost:5003/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5003/api";
 
 const sampleInput = {
   chapter: "Relations and Functions",
