@@ -53,22 +53,10 @@ export default function PreviewParser() {
         method: "POST",
         body: formData,
       });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || errorData.message || `Server error: ${response.status}`);
-      }
-      
       const data = await response.json();
-      
-      if (!data) {
-        throw new Error("No data received from server");
-      }
-      
       setResult(data);
     } catch (err) {
-      console.error("Preview error:", err);
-      setError(err instanceof Error ? err.message : "Request failed. Please check your files and try again.");
+      setError(err instanceof Error ? err.message : "Request failed");
     } finally {
       setLoading(false);
     }

@@ -9,7 +9,6 @@ import PreviewParser from "./components/PreviewParser";
 import HealthCheck from "./components/HealthCheck";
 import MathPreview from "./components/MathPreview";
 import LatexEditor from "./components/LatexEditor";
-import ErrorBoundary from "./components/ErrorBoundary";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -65,54 +64,42 @@ export default function LatexParserPage() {
           <TabsContent value="file-upload">
             <Card>
               <CardContent className="p-6">
-                <ErrorBoundary>
-                  <FileUploadParser />
-                </ErrorBoundary>
+                <FileUploadParser />
               </CardContent>
             </Card>
           </TabsContent>
           <TabsContent value="json-parse">
             <Card>
               <CardContent className="p-6">
-                <ErrorBoundary>
-                  <JsonParser />
-                </ErrorBoundary>
+                <JsonParser />
               </CardContent>
             </Card>
           </TabsContent>
           <TabsContent value="preview">
             <Card>
               <CardContent className="p-6">
-                <ErrorBoundary>
-                  <PreviewParser />
-                </ErrorBoundary>
+                <PreviewParser />
               </CardContent>
             </Card>
           </TabsContent>
           <TabsContent value="health">
             <Card>
               <CardContent className="p-6">
-                <ErrorBoundary>
-                  <HealthCheck />
-                </ErrorBoundary>
+                <HealthCheck />
               </CardContent>
             </Card>
           </TabsContent>
           <TabsContent value="math-preview">
             <Card>
               <CardContent className="p-6">
-                <ErrorBoundary>
-                  <MathPreview />
-                </ErrorBoundary>
+                <MathPreview />
               </CardContent>
             </Card>
           </TabsContent>
           <TabsContent value="latex-editor">
             <Card>
               <CardContent className="p-6">
-                <ErrorBoundary>
-                  <LatexEditor />
-                </ErrorBoundary>
+                <LatexEditor />
               </CardContent>
             </Card>
           </TabsContent>

@@ -60,49 +60,18 @@ function loadMathJax(): Promise<void> {
         processEscapes: true,
         processEnvironments: true,
         packages: { 
-          "[+]": ["ams", "noerrors", "noundefined", "textmacros", "mathtools", "physics"]
+          "[+]": ["cancel", "color", "physics", "mhchem"] 
         },
         tags: "ams",
-        // Enable all math environments
-        environments: {
-          equation: ["equation", null],
-          "equation*": ["equation*", null],
-          align: ["align", null],
-          "align*": ["align*", null],
-          alignat: ["alignat", null],
-          "alignat*": ["alignat*", null],
-          gather: ["gather", null],
-          "gather*": ["gather*", null],
-          multline: ["multline", null],
-          "multline*": ["multline*", null],
-          split: ["split", null],
-          array: ["array", null],
-          matrix: ["matrix", null],
-          pmatrix: ["pmatrix", null],
-          bmatrix: ["bmatrix", null],
-          Bmatrix: ["Bmatrix", null],
-          vmatrix: ["vmatrix", null],
-          Vmatrix: ["Vmatrix", null],
-          cases: ["cases", null],
-          eqnarray: ["eqnarray", null],
-          "eqnarray*": ["eqnarray*", null],
-        },
-        macros: {
-          // Common math macros
-          RR: "\\mathbb{R}",
-          NN: "\\mathbb{N}",
-          ZZ: "\\mathbb{Z}",
-          QQ: "\\mathbb{Q}",
-          CC: "\\mathbb{C}",
-        },
       },
       options: {
         skipHtmlTags: ["script", "noscript", "style", "textarea", "pre"],
-        ignoreHtmlClass: "tex2jax_ignore",
-        processHtmlClass: "tex2jax_process",
       },
       startup: {
         typeset: false,
+      },
+      loader: {
+        load: ["[tex]/cancel", "[tex]/color", "[tex]/physics", "[tex]/mhchem"]
       },
     } as typeof window.MathJax;
 
@@ -133,17 +102,6 @@ function loadMathJax(): Promise<void> {
 }
 
 function processLatex(input: string): string {
-  // Check if input contains math environments that need preservation
-  const hasEnvironments = /\\begin\{(equation|align|gather|eqnarray|multline|split|array|matrix|pmatrix|bmatrix|cases|alignat)\*?\}/.test(input);
-  
-  if (hasEnvironments) {
-    // For content with environments, preserve structure and only handle line breaks outside environments
-    // Replace \\ that are NOT inside math environments with <br/>
-    // Keep newlines for proper environment formatting
-    return input.replace(/\n\n+/g, "<br/><br/>");
-  }
-  
-  // For simple math without environments, handle line breaks normally
   return input
     .replace(/\\\\/g, "<br/>")
     .replace(/\n/g, "<br/>");

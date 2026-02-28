@@ -114,24 +114,7 @@ export default function ResultDisplay({
   );
   const [history, setHistory] = useState<ReturnType<typeof getFromStorage>>([]);
   const [isClient, setIsClient] = useState(false);
-  
-  // Add error handling for data parsing
-  let result: ParseResult;
-  try {
-    result = data as ParseResult;
-    // Validate result structure
-    if (typeof result !== 'object' || result === null) {
-      result = {
-        success: false,
-        error: "Invalid response format received from server"
-      };
-    }
-  } catch (err) {
-    result = {
-      success: false,
-      error: `Failed to parse response: ${err instanceof Error ? err.message : 'Unknown error'}`
-    };
-  }
+  const result = data as ParseResult;
 
   const loadHistory = useCallback(() => {
     if (typeof window !== "undefined") {
@@ -159,34 +142,9 @@ export default function ResultDisplay({
     return (
       <Card className="mt-6 border-destructive/50 bg-destructive/10">
         <CardContent className="pt-6">
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 text-destructive">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <div className="flex-1">
-              <div className="font-semibold text-destructive mb-1">Parsing Failed</div>
-              <div className="text-sm text-destructive/90">
-                {result.error || "An unknown error occurred during parsing"}
-              </div>
-              {result.errors && result.errors.length > 0 && (
-                <ul className="mt-3 list-inside list-disc text-sm text-destructive/80 space-y-1">
-                  {result.errors.map((err, i) => (
-                    <li key={i}>{err}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
+          <div className="font-medium text-destructive">Error</div>
+          <div className="text-sm text-destructive/90">
+            {result.error || "Unknown error occurred"}
           </div>
         </CardContent>
       </Card>
@@ -383,20 +341,6 @@ function MetaItem({
 
 function QuestionCard({ question }: { question: ParsedQuestion }) {
   const [expanded, setExpanded] = useState(true);
-  const [renderError, setRenderError] = useState<string | null>(null);
-
-  // Validate question data
-  if (!question) {
-    return (
-      <Card className="border-amber-500/30 bg-amber-500/10">
-        <CardContent className="pt-6">
-          <div className="text-amber-700 dark:text-amber-400">
-            Invalid question data
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   const difficultyVariant = (d: string) => {
     if (d === "easy") return "outline" as const;
@@ -404,70 +348,51 @@ function QuestionCard({ question }: { question: ParsedQuestion }) {
     return "destructive" as const;
   };
 
-  // Safely access nested properties with fallbacks
-  const tags = question.tags || {};
-  const options = question.options || {};
-  const questionText = question.question || "";
-  const solution = question.solution || "No solution provided";
-  const explanation = question.explanation || "No explanation provided";
-
   return (
     <Card>
       <CardContent className="p-5">
         <div className="mb-3 flex items-start justify-between">
-          <Badge variant="default">Q{question.id || "?"}</Badge>
+          <Badge variant="default">Q{question.id}</Badge>
           <div className="flex gap-1.5">
-            {tags.difficulty && (
-              <Badge variant={difficultyVariant(tags.difficulty)}>
-                {tags.difficulty}
-              </Badge>
-            )}
-            {tags.questionType && (
-              <Badge variant="secondary">{tags.questionType}</Badge>
-            )}
+            <Badge variant={difficultyVariant(question.tags.difficulty)}>
+              {question.tags.difficulty}
+            </Badge>
+            <Badge variant="secondary">{question.tags.questionType}</Badge>
           </div>
         </div>
 
-        {renderError ? (
-          <div className="mb-4 rounded-lg bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-400">
-            Error rendering question: {renderError}
-          </div>
-        ) : (
-          <div className="mb-4 text-foreground">
-            <MathRenderer
-              latex={questionText}
-              className="text-sm leading-relaxed"
-            />
-          </div>
-        )}
+        <div className="mb-4 text-foreground">
+          <MathRenderer
+            latex={question.question}
+            className="text-sm leading-relaxed"
+          />
+        </div>
 
-        {Object.keys(options).length > 0 && (
-          <div className="mb-4 grid grid-cols-1 gap-2 text-sm md:grid-cols-2">
-            {Object.entries(options).map(([key, value]) => (
-              <div
-                key={key}
-                className={`flex items-start gap-2 rounded-lg p-3 ${
-                  key === question.correctAnswer
-                    ? "border-2 border-green-500 bg-green-500/10"
-                    : "bg-muted"
-                }`}
-              >
-                <span className="shrink-0 font-semibold text-muted-foreground">
-                  ({key})
-                </span>
-                <MathRenderer latex={value || ""} className="inline flex-1" />
-                {key === question.correctAnswer && (
-                  <CheckCircle2 className="size-4 shrink-0 text-green-600 dark:text-green-400" />
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="mb-4 grid grid-cols-1 gap-2 text-sm md:grid-cols-2">
+          {Object.entries(question.options).map(([key, value]) => (
+            <div
+              key={key}
+              className={`flex items-start gap-2 rounded-lg p-3 ${
+                key === question.correctAnswer
+                  ? "border-2 border-green-500 bg-green-500/10"
+                  : "bg-muted"
+              }`}
+            >
+              <span className="shrink-0 font-semibold text-muted-foreground">
+                ({key})
+              </span>
+              <MathRenderer latex={value} className="inline flex-1" />
+              {key === question.correctAnswer && (
+                <CheckCircle2 className="size-4 shrink-0 text-green-600 dark:text-green-400" />
+              )}
+            </div>
+          ))}
+        </div>
 
         <div className="mb-3 flex flex-wrap gap-1.5">
-          {tags.topic && <Badge variant="outline">{tags.topic}</Badge>}
-          {tags.subtopic && <Badge variant="outline">{tags.subtopic}</Badge>}
-          {tags.bloomsLevel && <Badge variant="outline">{tags.bloomsLevel}</Badge>}
+          <Badge variant="outline">{question.tags.topic}</Badge>
+          <Badge variant="outline">{question.tags.subtopic}</Badge>
+          <Badge variant="outline">{question.tags.bloomsLevel}</Badge>
         </div>
 
         <Button
@@ -497,7 +422,7 @@ function QuestionCard({ question }: { question: ParsedQuestion }) {
               </div>
               <div className="rounded-lg bg-muted p-3">
                 <MathRenderer
-                  latex={solution}
+                  latex={question.solution}
                   className="text-sm text-foreground"
                 />
               </div>
@@ -507,37 +432,33 @@ function QuestionCard({ question }: { question: ParsedQuestion }) {
                 Explanation
               </div>
               <div className="text-sm text-foreground">
-                {explanation}
+                {question.explanation}
               </div>
             </div>
-            {tags.concepts && tags.concepts.length > 0 && (
-              <div>
-                <div className="mb-1.5 text-xs font-medium text-muted-foreground">
-                  Concepts
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {tags.concepts.map((c, i) => (
-                    <Badge key={i} variant="default">
-                      {c}
-                    </Badge>
-                  ))}
-                </div>
+            <div>
+              <div className="mb-1.5 text-xs font-medium text-muted-foreground">
+                Concepts
               </div>
-            )}
-            {tags.skills && tags.skills.length > 0 && (
-              <div>
-                <div className="mb-1.5 text-xs font-medium text-muted-foreground">
-                  Skills
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {tags.skills.map((s, i) => (
-                    <Badge key={i} variant="secondary">
-                      {s}
-                    </Badge>
-                  ))}
-                </div>
+              <div className="flex flex-wrap gap-1.5">
+                {question.tags.concepts.map((c, i) => (
+                  <Badge key={i} variant="default">
+                    {c}
+                  </Badge>
+                ))}
               </div>
-            )}
+            </div>
+            <div>
+              <div className="mb-1.5 text-xs font-medium text-muted-foreground">
+                Skills
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {question.tags.skills.map((s, i) => (
+                  <Badge key={i} variant="secondary">
+                    {s}
+                  </Badge>
+                ))}
+              </div>
+            </div>
           </div>
         )}
       </CardContent>

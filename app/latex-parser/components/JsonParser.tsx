@@ -53,49 +53,20 @@ export default function JsonParser() {
     setLoading(true);
     setError(null);
     setResult(null);
-    
     try {
-      // Validate JSON first
-      let parsed;
-      try {
-        parsed = JSON.parse(jsonInput);
-      } catch (parseErr) {
-        throw new Error(`Invalid JSON: ${parseErr instanceof Error ? parseErr.message : 'Parse error'}`);
-      }
-      
-      // Validate required fields
-      if (!parsed.questions || !Array.isArray(parsed.questions)) {
-        throw new Error("JSON must contain a 'questions' array");
-      }
-      
-      if (parsed.questions.length === 0) {
-        throw new Error("Questions array cannot be empty");
-      }
-      
+      const parsed = JSON.parse(jsonInput);
       const response = await fetch(`${API_BASE}/latex/parse-text`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(parsed),
       });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || errorData.message || `Server error: ${response.status}`);
-      }
-      
       const data = await response.json();
-      
-      if (!data) {
-        throw new Error("No data received from server");
-      }
-      
       setResult(data);
       if (data.success) {
         saveToStorage(data, "/api/latex/parse-text");
       }
     } catch (err) {
-      console.error("Parse error:", err);
-      setError(err instanceof Error ? err.message : "Request failed. Please check your input and try again.");
+      setError(err instanceof Error ? err.message : "Invalid JSON or request failed");
     } finally {
       setLoading(false);
     }
