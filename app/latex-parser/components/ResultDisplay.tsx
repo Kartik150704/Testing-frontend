@@ -340,7 +340,7 @@ function MetaItem({
 }
 
 function QuestionCard({ question }: { question: ParsedQuestion }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
 
   const difficultyVariant = (d: string) => {
     if (d === "easy") return "outline" as const;
