@@ -47,13 +47,25 @@ export default function FileUploadParser() {
         method: "POST",
         body: formData,
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || errorData.message || `Server error: ${response.status}`);
+      }
+      
       const data = await response.json();
+      
+      if (!data) {
+        throw new Error("No data received from server");
+      }
+      
       setResult(data);
       if (data.success) {
         saveToStorage(data, "/api/latex/parse");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Request failed");
+      console.error("Parse error:", err);
+      setError(err instanceof Error ? err.message : "Request failed. Please check your connection and try again.");
     } finally {
       setLoading(false);
     }

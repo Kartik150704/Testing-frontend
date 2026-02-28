@@ -6,3 +6,4 @@ export { default as ResultDisplay } from "./ResultDisplay";
 export { default as MathRenderer } from "./MathRenderer";
 export { default as MathPreview } from "./MathPreview";
 export { default as LatexEditor } from "./LatexEditor";
+export { default as ErrorBoundary } from "./ErrorBoundary";
