@@ -15,7 +15,33 @@ The quadratic formula is: $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
 Consider the integral: $\\int_0^\\infty e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}$
 
 Matrix example:
-$$\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}$$`;
+$$\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}$$
+
+**Advanced Syntax Examples:**
+
+**Using \\not command:** $x \\not= y$, $A \\not\\subset B$, $x \\not\\in S$, $\\not\\exists x$, $a \\not\\equiv b \\pmod{n}$
+
+**Standard negation symbols (recommended):** $x \\neq y$, $x \\notin S$, $A \\nsubseteq B$, $x \\nleq y$, $x \\ngeq y$
+
+**More negations:** $\\nmid$, $\\nparallel$, $\\nprec$, $\\nsucc$, $\\nsim$, $\\ncong$
+
+**Cancellation:** $\\frac{\\cancel{5}x}{\\cancel{5}y} = \\frac{x}{y}$, $\\bcancel{removed}$, $\\xcancel{crossed}$
+
+**Colored text:** $\\color{red}{red}$, $\\color{blue}{x^2 + y^2 = z^2}$, $\\color{green}{\\int f(x)dx}$
+
+**Bold symbols:** $\\boldsymbol{\\alpha}$, $\\mathbf{F} = m\\mathbf{a}$, $\\pmb{\\nabla}$
+
+**Boxed equations:** $\\boxed{E = mc^2}$, $\\boxed{F = ma}$
+
+**Quantum mechanics:** $\\bra{\\psi}$, $\\ket{\\phi}$, $\\braket{\\psi|\\phi}$, $\\bra{\\psi}\\hat{H}\\ket{\\psi}$
+
+**Chemistry:** $\\ce{H2O}$, $\\ce{CO2}$, $\\ce{H2SO4}$, $\\ce{2H2 + O2 -> 2H2O}$
+
+**Extended arrows:** $A \\xrightarrow{f} B$, $C \\xleftarrow[below]{above} D$, $X \\xLeftrightarrow{iso} Y$
+
+**Set notation:** $\\mathbb{R}$, $\\mathbb{N}$, $\\mathbb{Z}$, $\\mathbb{Q}$, $\\mathbb{C}$
+
+**Complex equation:** $$\\oint_C \\mathbf{E} \\cdot d\\mathbf{l} = -\\frac{d}{dt}\\int_S \\mathbf{B} \\cdot d\\mathbf{A}$$`;
 
 export default function MathPreview() {
   const [latex, setLatex] = useState(sampleLatex);
@@ -113,6 +139,36 @@ export default function MathPreview() {
                 \\
               </code>{" "}
               or newlines
+            </p>
+            <p>
+              <strong className="text-foreground">Negation:</strong>{" "}
+              <code className="rounded bg-muted px-1 py-0.5 font-mono text-foreground">
+                \not=, \notin, \not\subset
+              </code>
+            </p>
+            <p>
+              <strong className="text-foreground">Cancel:</strong>{" "}
+              <code className="rounded bg-muted px-1 py-0.5 font-mono text-foreground">
+                \cancel{"{x}"}, \bcancel{"{x}"}, \xcancel{"{x}"}
+              </code>
+            </p>
+            <p>
+              <strong className="text-foreground">Color:</strong>{" "}
+              <code className="rounded bg-muted px-1 py-0.5 font-mono text-foreground">
+                \color{"{red}"}{"{text}"}
+              </code>
+            </p>
+            <p>
+              <strong className="text-foreground">Chemistry:</strong>{" "}
+              <code className="rounded bg-muted px-1 py-0.5 font-mono text-foreground">
+                \ce{"{H2O}"}
+              </code>
+            </p>
+            <p>
+              <strong className="text-foreground">Physics notation:</strong>{" "}
+              <code className="rounded bg-muted px-1 py-0.5 font-mono text-foreground">
+                \bra{"{\\psi}"}, \ket{"{\\phi}"}, \braket{"{\\psi|\\phi}"}
+              </code>
             </p>
           </div>
         </CardContent>

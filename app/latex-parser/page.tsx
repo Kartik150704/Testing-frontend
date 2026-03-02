@@ -8,8 +8,10 @@ import JsonParser from "./components/JsonParser";
 import PreviewParser from "./components/PreviewParser";
 import HealthCheck from "./components/HealthCheck";
 import MathPreview from "./components/MathPreview";
+import LatexEditor from "./components/LatexEditor";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const tabs: { id: string; label: string; description: string }[] = [
   { id: "file-upload", label: "File Upload", description: "POST /api/latex/parse" },
@@ -17,9 +19,20 @@ const tabs: { id: string; label: string; description: string }[] = [
   { id: "preview", label: "Preview Split", description: "POST /api/latex/preview" },
   { id: "health", label: "Health Check", description: "GET /api/latex/health" },
   { id: "math-preview", label: "Math Preview", description: "Test MathJax Renderer" },
+  { id: "latex-editor", label: "LaTeX Editor", description: "Split View Editor & Preview" },
 ];
 
 export default function LatexParserPage() {
+  const [activeTab, setActiveTab] = useState("file-upload");
+
+  useEffect(() => {
+    // Check if there's a hash in the URL
+    const hash = window.location.hash.replace('#', '');
+    if (hash && tabs.some(tab => tab.id === hash)) {
+      setActiveTab(hash);
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
@@ -39,7 +52,7 @@ export default function LatexParserPage() {
         </div>
       </header>
       <div className="mx-auto max-w-6xl px-4 py-6">
-        <Tabs defaultValue="file-upload" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="mb-6 flex w-full flex-wrap">
             {tabs.map((tab) => (
               <TabsTrigger key={tab.id} value={tab.id} className="flex flex-col items-start gap-0.5 px-4 py-3">
@@ -80,6 +93,13 @@ export default function LatexParserPage() {
             <Card>
               <CardContent className="p-6">
                 <MathPreview />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="latex-editor">
+            <Card>
+              <CardContent className="p-6">
+                <LatexEditor />
               </CardContent>
             </Card>
           </TabsContent>

@@ -59,7 +59,9 @@ function loadMathJax(): Promise<void> {
         ],
         processEscapes: true,
         processEnvironments: true,
-        packages: { "[+]": ["textmacros"] },
+        packages: { 
+          "[+]": ["cancel", "color", "physics", "mhchem"] 
+        },
         tags: "ams",
       },
       options: {
@@ -67,6 +69,9 @@ function loadMathJax(): Promise<void> {
       },
       startup: {
         typeset: false,
+      },
+      loader: {
+        load: ["[tex]/cancel", "[tex]/color", "[tex]/physics", "[tex]/mhchem"]
       },
     } as typeof window.MathJax;
 
@@ -99,7 +104,6 @@ function loadMathJax(): Promise<void> {
 function processLatex(input: string): string {
   return input
     .replace(/\\\\/g, "<br/>")
-    .replace(/\\n/g, "<br/>")
     .replace(/\n/g, "<br/>");
 }
 
